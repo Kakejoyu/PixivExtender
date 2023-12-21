@@ -7,6 +7,9 @@
 
 Thanks to [@Ahaochan](https://greasyfork.org/users/30831-ahaochan), the developer of "[Pixiv Plus](https://greasyfork.org/scripts/34153-pixiv-plus)"!
 
+| [Greasy Fork](https://greasyfork.org/scripts/482803-pixiv-extender) | [GitHub](https://github.com/Kakejoyu/PixivExtender) |
+|--|--|
+
 ## Features
 
 - Remove ads
@@ -32,7 +35,7 @@ Example:
 
 ### Stable version
 
-Install from Greasy Fork
+[Install from Greasy Fork](https://update.greasyfork.org/scripts/482803/Pixiv%20Extender.user.js)
 
 ### Development version
 

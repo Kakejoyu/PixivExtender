@@ -7,6 +7,9 @@
 
 「[Pixiv Plus](https://greasyfork.org/ja/scripts/34153-pixiv-plus)」の開発者である[@Ahaochan](https://greasyfork.org/users/30831-ahaochan)に感謝します！
 
+| [Greasy Fork](https://greasyfork.org/scripts/482803-pixiv-extender) | [GitHub](https://github.com/Kakejoyu/PixivExtender) |
+|--|--|
+
 ## 機能
 
 - 広告の削除
@@ -32,7 +35,7 @@
 
 ### 安定版
 
-Greasy Forkからインストール
+[Greasy Forkからインストール](https://update.greasyfork.org/scripts/482803/Pixiv%20Extender.user.js)
 
 ### 開発版
 
