@@ -185,7 +185,6 @@ jQuery(($) => {
             load_origin: "元の画像を読み込み",
             ad_disable: "広告の無効化",
             search_enhance: "検索を強化",
-            download_able: "ダウンロードを可能に",
             artist_info: "アーティスト情報を表示",
             comment_load: "コメントの読み込み",
             artwork_tag: "フィードでの作品種別表示",
@@ -232,7 +231,6 @@ jQuery(($) => {
             load_origin: "Load original images",
             ad_disable: "Remove ads",
             search_enhance: "Enhanced search",
-            download_able: "Download multiple page artworks or GIF artworks",
             artist_info: "Display artist UIDs and profile background images",
             comment_load: "Automatically load comments",
             artwork_tag: "Display artwork types",
@@ -279,7 +277,6 @@ jQuery(($) => {
             load_origin: "加载原图",
             ad_disable: "屏蔽广告",
             search_enhance: "搜索增强",
-            download_able: "开启下载",
             artist_info: "显示作者信息",
             comment_load: "加载评论",
             artwork_tag: "作品标记",
@@ -327,7 +324,6 @@ jQuery(($) => {
             load_origin: "加載原圖",
             ad_disable: "屏蔽廣告",
             search_enhance: "搜索增強",
-            download_able: "開啟下載",
             artist_info: "顯示作者信息",
             comment_load: "加載評論",
             artwork_tag: "作品標記",
@@ -378,7 +374,6 @@ jQuery(($) => {
         const settings = [
             ["ad_disable", true],
             ["search_enhance", true],
-            ["download_able", true],
             ["artist_info", true],
             ["comment_load", true],
             ["artwork_tag", true],
@@ -399,13 +394,13 @@ jQuery(($) => {
             setting_panel: true,
             ad_disable: settings[0][1],
             search_enhance: settings[1][1],
-            download_able: settings[2][1],
-            artist_info: settings[3][1],
-            comment_load: settings[4][1],
-            artwork_tag: settings[5][1],
-            redirect_cancel: settings[6][1],
-            history_enhance: settings[7][1],
-            load_origin: settings[8][1],
+            download_able: true,
+            artist_info: settings[2][1],
+            comment_load: settings[3][1],
+            artwork_tag: settings[4][1],
+            redirect_cancel: settings[5][1],
+            history_enhance: settings[6][1],
+            load_origin: settings[7][1],
         });
     };
     const config = initConfig();
@@ -544,9 +539,6 @@ jQuery(($) => {
                 "comment_load"
             )}</label>
             <h2>${i18n("setting_download")}</h2>
-            <label class="pe-toggle-box"><input type="checkbox" name="download_able" /><div><div></div></div>${i18n(
-                "download_able"
-            )}</label>
             <label class="pe-toggle-box"><input type="checkbox" name="${
                 GMkeys.switchImgPreload
             }" /><div><div></div></div>${i18n("setting_switchImgPreload")}</label>
