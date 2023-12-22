@@ -202,14 +202,15 @@ jQuery(($) => {
             download: "ダウンロード",
             download_wait: "ダウンロード完了までお待ちください",
             gif_not_loaded: "Gifがまだ読み込まれていません。しばらくお待ちください！",
-            copy_to_clipboard: "をクリップボードにコピーしました",
+            click_to_copy: "クリックしてコピー",
+            copy_to_clipboard: "UIDをコピーしました",
             background: "背景画像",
             background_not_found: "背景画像なし",
             loginWarning:
                 "Pixiv Extenderスクリプト警告！より快適にご利用いただくために、Pixivにログインしてください！ログインしないと、予期せぬバグが発生する可能性があります！",
-            feed_illust_type_single: "[単一画像]",
-            feed_illust_type_multiple: "[複数画像]",
-            feed_illust_type_gif: "[Gif画像]",
+            illust_type_single: "[単一画像]",
+            illust_type_multiple: "[複数画像]",
+            illust_type_gif: "[Gif画像]",
             setting_title: "Pixiv Extender 設定",
             setting_MO: "PJAX対応(推奨)",
             setting_switchImgMulti: "複数の画像を自動的に読み込む",
@@ -248,14 +249,15 @@ jQuery(($) => {
             download: "download",
             download_wait: "please wait download completed",
             gif_not_loaded: "Gif not yet loaded, please wait a moment!",
-            copy_to_clipboard: "copy to Clipboard",
+            click_to_copy: "Click to copy",
+            copy_to_clipboard: "Copied UID",
             background: "background",
             background_not_found: "no-background",
             loginWarning:
                 "Pixiv Extender Script Warning! Please login to Pixiv for a better experience! Failure to login may result in unpredictable bugs!",
-            feed_illust_type_single: "[single pic]",
-            feed_illust_type_multiple: "[multiple pic]",
-            feed_illust_type_gif: "[gif pic]",
+            illust_type_single: "[single pic]",
+            illust_type_multiple: "[multiple pic]",
+            illust_type_gif: "[gif pic]",
             setting_title: "Pixiv Extender Settings",
             setting_MO: "PJAX compliant(recommended)",
             setting_switchImgMulti: "Automatically load multiple images",
@@ -294,14 +296,15 @@ jQuery(($) => {
             download: "下载",
             download_wait: "请等待下载完成",
             gif_not_loaded: "Gif未加载完毕, 请稍等片刻!",
-            copy_to_clipboard: "已复制到剪贴板",
+            click_to_copy: "点击复制",
+            copy_to_clipboard: "已复制 UID",
             background: "背景图",
             background_not_found: "无背景图",
             loginWarning:
                 "Pixiv Extender 脚本警告! 请登录Pixiv获得更好的体验! 未登录可能产生不可预料的bug!",
-            feed_illust_type_single: "[单图]",
-            feed_illust_type_multiple: "[多图]",
-            feed_illust_type_gif: "[gif图]",
+            illust_type_single: "[单图]",
+            illust_type_multiple: "[多图]",
+            illust_type_gif: "[gif图]",
             setting_title: "Pixiv Extender配置",
             setting_MO: "兼容PJAX(推荐)",
             setting_switchImgMulti: "自动加载多图",
@@ -341,14 +344,15 @@ jQuery(($) => {
             download: "下載",
             download_wait: "請等待下載完成",
             gif_not_loaded: "Gif未載入完畢, 請稍等片刻!",
-            copy_to_clipboard: "已復製到剪貼板",
+            click_to_copy: "點選複製",
+            copy_to_clipboard: "已複製 UID",
             background: "背景圖",
             background_not_found: "無背景圖",
             loginWarning:
                 "Pixiv Extender 腳本警告! 請登錄Pixiv獲得更好的體驗! 未登錄可能產生不可預料的bug!",
-            feed_illust_type_single: "[單圖]",
-            feed_illust_type_multiple: "[多圖]",
-            feed_illust_type_gif: "[gif圖]",
+            illust_type_single: "[單圖]",
+            illust_type_multiple: "[多圖]",
+            illust_type_gif: "[gif圖]",
             setting_title: "Pixiv Extender配置",
             setting_MO: "相容PJAX(推薦)",
             setting_switchImgMulti: "自動載入多圖",
@@ -1427,15 +1431,11 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         for (let i = 0, len = mutations.length; i < len; i++) {
                             const mutation = mutations[i];
 
-                            // 1. 判断是否改变节点, 或者是否有[section]节点
-                            const $target = $(mutation.target); // 多个反混淆externalLinksContainer
-
-                            const externalLinksContainer = "_2AOtfl9";
-                            const $row = $(`ul.${externalLinksContainer}`).parent();
+                            const $row = $(`ul.vvDu89yih2YF19XQ`).parent();
                             if (
                                 mutation.type !== "childList" ||
                                 $row.length <= 0 ||
-                                $("body").find("#uid").length > 0
+                                $("body").find("#pe-uid").length > 0
                             ) {
                                 continue;
                             }
@@ -1448,16 +1448,20 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             $ul.empty();
                             $row.before($peRow);
 
+                            $peRow.css("margin-bottom", "10px");
+
                             // 2. 显示画师id, 点击自动复制到剪贴板
                             const uid = getUid();
                             const $uid = $(
-                                `<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`
+                                `<li id="pe-uid" style="cursor: pointer;" title="${i18n(
+                                    "click_to_copy"
+                                )}"><div>UID: ${uid}</div></li>`
                             ).on("click", function () {
                                 const $this = $(this);
-                                $this.html(`<span>UID${i18n("copy_to_clipboard")}</span>`);
+                                $this.html(`<div>${i18n("copy_to_clipboard")}</div>`);
                                 GM.setClipboard(uid);
                                 setTimeout(() => {
-                                    $this.html(`<span>UID${uid}</span>`);
+                                    $this.html(`<div>UID: ${uid}</div>`);
                                 }, 2000);
                             });
                             $ul.append($uid);
@@ -1465,13 +1469,11 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             // 3. 显示画师背景图
                             const background = preloadData.user[uid].background;
                             const url = (background && background.url) || "";
-                            const $bgli = $(
-                                '<li><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1"></div></li>'
-                            );
+                            const $bgli = $("<li><div></div></li>");
                             const $bg = $bgli.find("div");
                             if (!!url && url !== "none") {
                                 $bg.append(
-                                    `<img src="${url}" width="30px"><a target="_blank" href="${url}">${i18n(
+                                    `<img src="${url}" style="margin-right: 3px;width: 30px;vertical-align: middle;"><a target="_blank" href="${url}">${i18n(
                                         "background"
                                     )}</a>`
                                 );
@@ -1509,7 +1511,9 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             const $bgDiv = $row.clone().attr("id", "pe-background");
                             $bgDiv.children("a").remove();
                             $bgDiv.children("div").children("div").remove();
-                            $bgDiv.prepend(`<img src="${url}" width="10%"/>`);
+                            $bgDiv.prepend(
+                                `<img src="${url}" style="margin-right: 3px;width: 10%;"/>`
+                            );
                             $bgDiv
                                 .find("div a")
                                 .attr("href", !!url ? url : "javascript:void(0)")
@@ -1524,10 +1528,11 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             $uid.find("a")
                                 .attr("href", "javascript:void(0)")
                                 .attr("id", "pe-uid")
+                                .attr("title", i18n("click_to_copy"))
                                 .text(`UID: ${uid}`);
                             $uid.on("click", function () {
                                 const $this = $(this);
-                                $this.find("a").text(`UID${i18n("copy_to_clipboard")}`);
+                                $this.find("a").text(`${i18n("copy_to_clipboard")}`);
                                 GM.setClipboard(uid);
                                 setTimeout(() => {
                                     $this.find("a").text(`UID: ${uid}`);
@@ -1686,13 +1691,13 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                             $a.after(
                                                 `<p>${
                                                     isMultiPic
-                                                        ? i18n("feed_illust_type_multiple")
-                                                        : i18n("feed_illust_type_single")
+                                                        ? i18n("illust_type_multiple")
+                                                        : i18n("illust_type_single")
                                                 }</p>`
                                             );
                                             break;
                                         case 2:
-                                            $a.after(`<p>${i18n("feed_illust_type_gif")}</p>`);
+                                            $a.after(`<p>${i18n("illust_type_gif")}</p>`);
                                             break;
                                     }
                                 },
@@ -1776,15 +1781,15 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${
                                                         isMultiPic
-                                                            ? i18n("feed_illust_type_multiple")
-                                                            : i18n("feed_illust_type_single")
+                                                            ? i18n("illust_type_multiple")
+                                                            : i18n("illust_type_single")
                                                     }</span>`
                                                 );
                                                 break;
                                             case 2:
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${i18n(
-                                                        "feed_illust_type_gif"
+                                                        "illust_type_gif"
                                                     )}</span>`
                                                 );
                                                 break;
@@ -1810,15 +1815,15 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${
                                                         isMultiPic
-                                                            ? i18n("feed_illust_type_multiple")
-                                                            : i18n("feed_illust_type_single")
+                                                            ? i18n("illust_type_multiple")
+                                                            : i18n("illust_type_single")
                                                     }</span>`
                                                 );
                                                 break;
                                             case 2:
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${i18n(
-                                                        "feed_illust_type_gif"
+                                                        "illust_type_gif"
                                                     )}</span>`
                                                 );
                                                 break;
