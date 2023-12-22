@@ -50,4 +50,4 @@
 
 ## ライセンス
 
-「Pixiv Extender」は[GPL-3.0ライセンス](https://github.com/Kakejoyu/UserScripts/blob/main/LICENSE)に基づいています。
+「Pixiv Extender」は[GPL-3.0ライセンス](https://github.com/Kakejoyu/PixivExtender/blob/main/LICENSE)に基づいています。

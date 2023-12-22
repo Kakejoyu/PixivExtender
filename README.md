@@ -24,7 +24,7 @@ Thanks to [@Ahaochan](https://greasyfork.org/users/30831-ahaochan), the develope
 
 ## Requirement
 
-- Userscript manager extension
+- User script manager extension
 
 Example:
 
@@ -50,4 +50,4 @@ Install from [GitHub](https://github.com/Kakejoyu/PixivExtender/raw/main/Pixiv_E
 
 ## License
 
-"Pixiv Extender" is under [GPL-3.0 license](https://github.com/Kakejoyu/UserScripts/blob/main/LICENSE).
+"Pixiv Extender" is under [GPL-3.0 license](https://github.com/Kakejoyu/PixivExtender/blob/main/LICENSE).
