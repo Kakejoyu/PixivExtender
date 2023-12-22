@@ -22,13 +22,15 @@
 // @grant       GM.setClipboard
 // @grant       GM.setValue
 // @grant       GM.getValue
+// @grant       GM.listValues
+// @grant       GM.deleteValue
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @grant       GM_registerMenuCommand
-// @grant       GM_unregisterMenuCommand
 // @grant       GM_setClipboard
 // @grant       GM_setValue
 // @grant       GM_getValue
+// @grant       GM_listValues
+// @grant       GM_deleteValue
 // @require     https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js
 // @require     https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.4/jszip.min.js
 // @require     https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.2/FileSaver.min.js
@@ -71,10 +73,7 @@ jQuery(($) => {
         getBackgroundUrl() {
             const imgUrls = [];
             this.each(function (index, { style }) {
-                let bgUrl =
-                    $(this).css("background-image") ||
-                    style.backgroundImage ||
-                    'url("")';
+                let bgUrl = $(this).css("background-image") || style.backgroundImage || 'url("")';
                 const matchArr = bgUrl.match(/url\((['"])(.*?)\1\)/);
                 bgUrl = matchArr && matchArr.length >= 2 ? matchArr[2] : "";
                 imgUrls.push(bgUrl);
@@ -93,28 +92,23 @@ jQuery(($) => {
                 const html = document.createElement("html");
                 html.innerHTML = response;
                 globalData = JSON.parse(
-                    $(html).find('meta[name="global-data"]').attr("content") ||
-                        "{}"
+                    $(html).find('meta[name="global-data"]').attr("content") || "{}"
                 );
                 preloadData = JSON.parse(
-                    $(html).find('meta[name="preload-data"]').attr("content") ||
-                        "{}"
+                    $(html).find('meta[name="preload-data"]').attr("content") || "{}"
                 );
             },
         });
     };
 
-    const lang = (
-        document.documentElement.getAttribute("lang") || "en"
-    ).toLowerCase();
+    const lang = (document.documentElement.getAttribute("lang") || "en").toLowerCase();
     let illustJson = {};
 
     const illust = () => {
         // 1. 判断是否已有作品id(兼容按左右方向键翻页的情况)
         const preIllustId = $("body").attr("pe_illust_id");
         const paramRegex = location.href.match(/artworks\/(\d*)$/);
-        const urlIllustId =
-            !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : "";
+        const urlIllustId = !!paramRegex && paramRegex.length > 0 ? paramRegex[1] : "";
         // 2. 如果illust_id没变, 则不更新json
         if (parseInt(preIllustId) === parseInt(urlIllustId)) {
             return illustJson;
@@ -132,16 +126,10 @@ jQuery(($) => {
         return illustJson;
     };
     const getUid = () => {
-        if (
-            !preloadData ||
-            !preloadData.user ||
-            !Object.keys(preloadData.user)[0]
-        ) {
+        if (!preloadData || !preloadData.user || !Object.keys(preloadData.user)[0]) {
             initData();
         }
-        return (
-            preloadData && preloadData.user && Object.keys(preloadData.user)[0]
-        );
+        return preloadData && preloadData.user && Object.keys(preloadData.user)[0];
     };
     const observerFactory = function (option) {
         let options;
@@ -162,9 +150,7 @@ jQuery(($) => {
             );
         }
         const MutationObserver =
-            window.MutationObserver ||
-            window.WebKitMutationObserver ||
-            window.MozMutationObserver;
+            window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 
         const observer = new MutationObserver((mutations, observer) => {
             options.callback.call(this, mutations, observer);
@@ -215,8 +201,7 @@ jQuery(($) => {
             illegal: "無効",
             download: "ダウンロード",
             download_wait: "ダウンロード完了までお待ちください",
-            gif_not_loaded:
-                "Gifがまだ読み込まれていません。しばらくお待ちください！",
+            gif_not_loaded: "Gifがまだ読み込まれていません。しばらくお待ちください！",
             copy_to_clipboard: "をクリップボードにコピーしました",
             background: "背景画像",
             background_not_found: "背景画像なし",
@@ -229,17 +214,18 @@ jQuery(($) => {
             setting_MO: "PJAX対応(推奨)",
             setting_switchImgMulti: "複数の画像を自動的に読み込む",
             setting_switchImgSize: "画像のサイズを表示する",
-            setting_switchImgPreload:
-                "Gif・Zipの事前ダウンロード(通信量が増加します)",
+            setting_switchImgPreload: "Gif・Zipの事前ダウンロード(通信量が増加します)",
             setting_downloadName: "ダウンロードファイル名：",
             setting_name_description:
                 "{pid}は作品ID | {uid}はアーティストID\\n{pname}は作品名 | {uname}はアーティスト名\\n複数の画像の場合、インデックス番号は自動的に入力されます。\\n現在のところ、GIFと複数画像のリネームのみがサポートされています。",
-            setting_description:
-                "すべての設定を反映させるためにはページをリロードしてください。",
             setting_general: "一般設定",
             setting_feedPage: "フィードページ設定",
             setting_artworkPage: "作品ページ設定",
             setting_download: "ダウンロード設定",
+            setting_help_btn_tooltip: "この項目のヘルプ",
+            setting_save_btn: "保存",
+            setting_reset_btn: "リセット",
+            setting_reset_confirm: "本当に設定をリセットしますか？",
         },
         en: {
             load_origin: "load_origin",
@@ -274,17 +260,18 @@ jQuery(($) => {
             setting_MO: "PJAX compliant(recommended)",
             setting_switchImgMulti: "Automatically load multiple images",
             setting_switchImgSize: "Display image size",
-            setting_switchImgPreload:
-                "Advance download of Gif/Zip (will increase traffic)",
+            setting_switchImgPreload: "Advance download of Gif/Zip (will increase traffic)",
             setting_downloadName: "Download file name: ",
             setting_name_description:
                 "{pid} is the artwork ID | {uid} is the artist ID\\n{pname} is the name of the artwork | {uname} is the name of the artist\\nFor multiple images, the index number is automatically populated.\\nCurrently, only GIF and multi-image renaming are supported.",
-            setting_description:
-                "Reload the page for all settings to take affect.",
             setting_general: "General Settings",
             setting_feedPage: "Feed Page Settings",
             setting_artworkPage: "Artwork Page Settings",
             setting_download: "Download Settings",
+            setting_help_btn_tooltip: "Help for this item",
+            setting_save_btn: "Save",
+            setting_reset_btn: "Reset",
+            setting_reset_confirm: "Do you really want to reset the settings?",
         },
         zh: {
             load_origin: "加载原图",
@@ -323,11 +310,14 @@ jQuery(($) => {
             setting_downloadName: "下载文件名: ",
             setting_name_description:
                 "{pid}是作品id | {uid}是画师id\\n{pname}是作品名 | {uname}是画师名\\n注意, 多图情况下, 会自动填充index索引编号\\n目前只支持GIF和多图的重命名",
-            setting_description: "重新载入页面，使所有设置生效。",
             setting_general: "常规设置",
             setting_feedPage: "馈送页面设置",
             setting_artworkPage: "作品页面设置",
             setting_download: "下载设置",
+            setting_help_btn_tooltip: "此项目的帮助",
+            setting_save_btn: "保存設定",
+            setting_reset_btn: "重置設定",
+            setting_reset_confirm: "您真的想重置设置吗？",
         },
         "zh-cn": {},
         "zh-tw": {
@@ -367,16 +357,18 @@ jQuery(($) => {
             setting_downloadName: "下載檔名: ",
             setting_name_description:
                 "{pid}是作品id | {uid}是畫師id\\n{pname}是作品名 | {uname}是畫師名\\n注意, 多圖 情況下, 會自動填入index索引編號\\n目前只支援GIF和多圖的重命名",
-            setting_description: "重新載入頁面，使所有設定生效。",
             setting_general: "常規設定",
             setting_feedPage: "饋送頁面設定",
             setting_artworkPage: "作品頁面設定",
             setting_download: "下載設定",
+            setting_help_btn_tooltip: "此項目的幫助",
+            setting_save_btn: "儲存設定",
+            setting_reset_btn: "重置設定",
+            setting_reset_confirm: "您真的想重置設定嗎？",
         },
     };
     i18nLib["zh-cn"] = $.extend({}, i18nLib.zh);
-    const i18n = (key) =>
-        i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
+    const i18n = (key) => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
     const initConfig = () => {
         const settings = [
@@ -400,6 +392,7 @@ jQuery(($) => {
             }
         }
         return Object.freeze({
+            setting_panel: true,
             ad_disable: settings[0][1],
             search_enhance: settings[1][1],
             download_able: settings[2][1],
@@ -412,162 +405,6 @@ jQuery(($) => {
         });
     };
     const config = initConfig();
-
-    (() => {
-        observerFactory((mutations, observer) => {
-            for (let i = 0, len = mutations.length; i < len; i++) {
-                const mutation = mutations[i];
-                if (mutation.type !== "childList") {
-                    continue;
-                }
-
-                $(mutation.target)
-                    .find(".sc-1rlbh8f-1.kvBUoX")
-                    .after(
-                        $(
-                            `<button title="${i18n(
-                                "setting_title"
-                            )}" id="pe-setting-btn" class="iahZRV ekdKos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="fill: currentColor; width: 20px;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg></button>`
-                        ).on("click", () => {
-                            $("body").append(`<div id="pe-bg">
-    <div id="pe-fg">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="pe-close"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-            <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
-        </svg><h1>${i18n("setting_title")}</h1>
-        <p>${i18n("setting_description")}</p>
-        <h2>${i18n("setting_general")}</h2>
-        <label class="pe-toggle-box"><input type="checkbox" name="${
-            GMkeys.MO
-        }" /><div><div></div></div>${i18n("setting_MO")}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="ad_disable" /><div><div></div></div>${i18n(
-            "ad_disable"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="search_enhance" /><div><div></div></div>${i18n(
-            "search_enhance"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="artist_info" /><div><div></div></div>${i18n(
-            "artist_info"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="redirect_cancel" /><div><div></div></div>${i18n(
-            "redirect_cancel"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="history_enhance" /><div><div></div></div>${i18n(
-            "history_enhance"
-        )}</label>
-        <h2>${i18n("setting_feedPage")}</h2>
-        <label class="pe-toggle-box"><input type="checkbox" name="artwork_tag" /><div><div></div></div>${i18n(
-            "artwork_tag"
-        )}</label>
-        <h2>${i18n("setting_artworkPage")}</h2>
-        <label class="pe-toggle-box"><input type="checkbox" name="load_origin" /><div><div></div></div>${i18n(
-            "load_origin"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="${
-            GMkeys.switchImgSize
-        }" /><div><div></div></div>${i18n("setting_switchImgSize")}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="${
-            GMkeys.switchImgMulti
-        }" /><div><div></div></div>${i18n("setting_switchImgMulti")}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="comment_load" /><div><div></div></div>${i18n(
-            "comment_load"
-        )}</label>
-        <h2>${i18n("setting_download")}</h2>
-        <label class="pe-toggle-box"><input type="checkbox" name="download_able" /><div><div></div></div>${i18n(
-            "download_able"
-        )}</label>
-        <label class="pe-toggle-box"><input type="checkbox" name="${
-            GMkeys.switchImgPreload
-        }" /><div><div></div></div>${i18n("setting_switchImgPreload")}</label>
-        <label class="pe-input-box">${i18n(
-            "setting_downloadName"
-        )}<input type="text" name="${
-                                GMkeys.downloadName
-                            }" placeholder="{pid}" /></label>
-        <div class="pe-help-btn" onclick="alert('${i18n(
-            "setting_name_description"
-        )}')">?</div>
-    </div>
-    <style>
-        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
-        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;overflow-y: scroll;}
-        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
-        #pe-fg h1 {font-size: 25px;font-weight: bold;}
-        #pe-fg h2 {font-size: 20px;font-weight: bold;}
-        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
-        #pe-fg label.pe-toggle-box {display: block;width: fit-content;cursor: pointer;}
-        #pe-fg label.pe-toggle-box * {margin: 0;}
-        #pe-fg label.pe-toggle-box input {display: none;}
-        #pe-fg label.pe-toggle-box input + div {display: inline-block;vertical-align: middle;margin-right: 10px;width: 50px;height: 24px;padding:2px;border-radius: 20px;background: #ffffff;position: relative;}
-        #pe-fg label.pe-toggle-box input:checked + div {background: #00ff00;}
-        #pe-fg label.pe-toggle-box input + div div {position: absolute;width: 20px;height: 20px;background: #ffffff;border: 2px solid #181818;border-radius: 20px;top: 2px;left: 2%;transition: left 0.05s linear;}
-        #pe-fg label.pe-toggle-box input:checked + div div {left: 53%;}
-        #pe-fg label.pe-input-box input {width: 340px;height: 20px;border: 2px solid #7c7c7c;border-radius: 5px;padding: 5px;background: #ffffff;color: #000000;}
-        #pe-fg div.pe-help-btn {display: inline-block;background: #0077ff;color: #ffffff;font-size: 15px;border-radius: 25px;text-align: center;width: 15px;height: 15px;margin-left: 5px;cursor: pointer;padding: 4px;vertical-align: middle;}
-    </style>
-</div>`);
-                            $("#pe-bg").css({
-                                width:
-                                    document.documentElement.clientWidth + "px",
-                                height:
-                                    document.documentElement.clientHeight +
-                                    "px",
-                            });
-                            let resizeTimer = null;
-                            $(window).on("resize", () => {
-                                if (resizeTimer != null) {
-                                    clearTimeout(resizeTimer);
-                                }
-                                resizeTimer = setTimeout(() => {
-                                    $("#pe-bg").css({
-                                        width:
-                                            document.documentElement
-                                                .clientWidth + "px",
-                                        height:
-                                            document.documentElement
-                                                .clientHeight + "px",
-                                    });
-                                }, 500);
-                            });
-                            $("#pe-close").click(function () {
-                                $("#pe-bg").remove();
-                            });
-
-                            $("#pe-fg")
-                                .find('input[type="checkbox"]')
-                                .each(function () {
-                                    const $checkbox = $(this);
-                                    const name = $checkbox.attr("name");
-                                    GM.getValue(name, true).then((value) => {
-                                        $checkbox.prop("checked", value);
-                                    });
-                                    $checkbox.on("change", () => {
-                                        const checked =
-                                            $checkbox.prop("checked");
-                                        $checkbox.prop(checked, checked);
-                                        GM.setValue(name, checked);
-                                        initConfig();
-                                    });
-                                });
-                            $("#pe-fg")
-                                .find('input[type="text"]')
-                                .each(function () {
-                                    const $input = $(this);
-                                    const name = $input.attr("name");
-                                    GM.getValue(name).then((value) => {
-                                        $input.val(value);
-                                    });
-                                    $input.on("change", () => {
-                                        GM.setValue(name, $input.val());
-                                    });
-                                });
-                        })
-                    );
-
-                observer.disconnect();
-                break;
-            }
-        });
-    })();
 
     // ============================ url 页面判断 ==============================
     const isArtworkPage = () => /.+artworks\/\d+.*/.test(location.href);
@@ -586,6 +423,233 @@ jQuery(($) => {
      * [3] => 判断是否处于对应页面的函数
      */
     const observers = [
+        // 0. 設定パネル
+        [
+            "setting_panel",
+            null,
+            () => {
+                observerFactory((mutations, observer) => {
+                    for (let i = 0, len = mutations.length; i < len; i++) {
+                        const mutation = mutations[i];
+                        if (mutation.type !== "childList") {
+                            continue;
+                        }
+
+                        // 親要素のスタイルを修正
+                        $(".hHgbLu").css("grid-template-columns", "repeat(6, auto)");
+
+                        $(mutation.target)
+                            .find(".sc-1rlbh8f-1.kvBUoX")
+                            .after(
+                                $(
+                                    `<button type="button" title="${i18n(
+                                        "setting_title"
+                                    )}" class="iahZRV ekdKos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="fill: currentColor; width: 20px;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg></button>`
+                                ).on("click", () => {
+                                    let UICss;
+                                    if ($(".charcoal-token").attr("data-theme") == "default") {
+                                        // ライトテーマ
+                                        UICss = `        body {overflow: hidden;}
+        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
+        #pe-fg {width: 50%;height: 82%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;}
+        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #111111;}
+        #pe-fg h1 {font-size: 25px;font-weight: bold;}
+        #pe-fg h2 {font-size: 20px;font-weight: bold;}
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        #pe-settings{height: 82%;overflow-y: scroll;}
+        #pe-fg label.pe-toggle-box {display: block;width: fit-content;cursor: pointer;}
+        #pe-fg label.pe-toggle-box * {margin: 0;}
+        #pe-fg label.pe-toggle-box input {display: none;}
+        #pe-fg label.pe-toggle-box input + div {display: inline-block;vertical-align: middle;margin-right: 10px;width: 50px;height: 24px;padding:2px;border-radius: 20px;background: #8a8a8a;position: relative;}
+        #pe-fg label.pe-toggle-box input:checked + div {background: #0096fa;}
+        #pe-fg label.pe-toggle-box input + div div {position: absolute;width: 24px;height: 24px;background: #ffffff;border-radius: 12px;top: 2px;left: 4%;transition: left 0.05s linear;}
+        #pe-fg label.pe-toggle-box input:checked + div div {left: 52%;}
+        #pe-fg label.pe-input-box input {width: 340px;height: 20px;border: 2px solid #8a8a8a;border-radius: 5px;padding: 5px;background: #ffffff;color: #000000;}
+        #pe-fg button.pe-help-btn {background: #0096fa;color: #ffffff;font-size: 17.5px;border: none;border-radius: 25px;text-align: center;width: 25px;height: 25px;cursor: pointer;vertical-align: middle;}
+        #pe-btns {display: flex;justify-content: center;}
+        #pe-btns button#pe-save-btn, #pe-btns button#pe-reset-btn {font-size: 20px;width: 100px;height: 40px;border: none;border-radius: 10px;cursor: pointer;color: #ffffff;}
+        #pe-btns button#pe-save-btn {background: #00b000;margin-right: 20px;}
+        #pe-btns button#pe-reset-btn {background: #b00000;margin-left: 20px;}`;
+                                    } else {
+                                        // ダークテーマ
+                                        UICss = `        body {overflow: hidden;}
+        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
+        #pe-fg {width: 50%;height: 82%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;}
+        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
+        #pe-fg h1 {font-size: 25px;font-weight: bold;}
+        #pe-fg h2 {font-size: 20px;font-weight: bold;}
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        #pe-settings{height: 82%;overflow-y: scroll;}
+        #pe-fg label.pe-toggle-box {display: block;width: fit-content;cursor: pointer;}
+        #pe-fg label.pe-toggle-box * {margin: 0;}
+        #pe-fg label.pe-toggle-box input {display: none;}
+        #pe-fg label.pe-toggle-box input + div {display: inline-block;vertical-align: middle;margin-right: 10px;width: 50px;height: 24px;padding:2px;border-radius: 20px;background: #8a8a8a;position: relative;}
+        #pe-fg label.pe-toggle-box input:checked + div {background: #0096fa;}
+        #pe-fg label.pe-toggle-box input + div div {position: absolute;width: 24px;height: 24px;background: #ffffff;border-radius: 12px;top: 2px;left: 4%;transition: left 0.05s linear;}
+        #pe-fg label.pe-toggle-box input:checked + div div {left: 52%;}
+        #pe-fg label.pe-input-box input {width: 340px;height: 20px;border: 2px solid #8a8a8a;border-radius: 5px;padding: 5px;background: #ffffff;color: #000000;}
+        #pe-fg button.pe-help-btn {background: #0096fa;color: #ffffff;font-size: 17.5px;border: none;border-radius: 25px;text-align: center;width: 25px;height: 25px;cursor: pointer;vertical-align: middle;}
+        #pe-btns {display: flex;justify-content: center;}
+        #pe-btns button#pe-save-btn, #pe-btns button#pe-reset-btn {font-size: 20px;width: 100px;height: 40px;border: none;border-radius: 10px;cursor: pointer;color: #ffffff;}
+        #pe-btns button#pe-save-btn {background: #00b000;margin-right: 20px;}
+        #pe-btns button#pe-reset-btn {background: #b00000;margin-left: 20px;}`;
+                                    }
+
+                                    $("body").append(`<div id="pe-bg">
+    <div id="pe-fg">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="pe-close"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
+        </svg>
+        <h1>${i18n("setting_title")}</h1>
+        <div id="pe-settings">
+            
+            <h2>${i18n("setting_general")}</h2>
+            <label class="pe-toggle-box"><input type="checkbox" name="${
+                GMkeys.MO
+            }" /><div><div></div></div>${i18n("setting_MO")}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="ad_disable" /><div><div></div></div>${i18n(
+                "ad_disable"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="search_enhance" /><div><div></div></div>${i18n(
+                "search_enhance"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="artist_info" /><div><div></div></div>${i18n(
+                "artist_info"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="redirect_cancel" /><div><div></div></div>${i18n(
+                "redirect_cancel"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="history_enhance" /><div><div></div></div>${i18n(
+                "history_enhance"
+            )}</label>
+            <h2>${i18n("setting_feedPage")}</h2>
+            <label class="pe-toggle-box"><input type="checkbox" name="artwork_tag" /><div><div></div></div>${i18n(
+                "artwork_tag"
+            )}</label>
+            <h2>${i18n("setting_artworkPage")}</h2>
+            <label class="pe-toggle-box"><input type="checkbox" name="load_origin" /><div><div></div></div>${i18n(
+                "load_origin"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="${
+                GMkeys.switchImgSize
+            }" /><div><div></div></div>${i18n("setting_switchImgSize")}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="${
+                GMkeys.switchImgMulti
+            }" /><div><div></div></div>${i18n("setting_switchImgMulti")}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="comment_load" /><div><div></div></div>${i18n(
+                "comment_load"
+            )}</label>
+            <h2>${i18n("setting_download")}</h2>
+            <label class="pe-toggle-box"><input type="checkbox" name="download_able" /><div><div></div></div>${i18n(
+                "download_able"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="${
+                GMkeys.switchImgPreload
+            }" /><div><div></div></div>${i18n("setting_switchImgPreload")}</label>
+            <label class="pe-input-box">${i18n("setting_downloadName")}<input type="text" name="${
+                                        GMkeys.downloadName
+                                    }" placeholder="{pid}" /></label>
+            <button type="button" title="${i18n(
+                "setting_help_btn_tooltip"
+            )}" class="pe-help-btn" onclick="alert('${i18n(
+                                        "setting_name_description"
+                                    )}')">?</button>
+        </div>
+        <div id="pe-btns">
+            <button type="button" title="${i18n("setting_save_btn")}" id="pe-save-btn">${i18n(
+                                        "setting_save_btn"
+                                    )}</button>
+            <button type="button" title="${i18n("setting_reset_btn")}" id="pe-reset-btn">${i18n(
+                                        "setting_reset_btn"
+                                    )}</button>
+        </div>
+    </div>
+    <style>
+        ${UICss}
+    </style>
+</div>`);
+                                    $("#pe-bg").css({
+                                        width: document.documentElement.clientWidth + "px",
+                                        height: document.documentElement.clientHeight + "px",
+                                    });
+                                    let resizeTimer = null;
+                                    $(window).on("resize", () => {
+                                        if (resizeTimer != null) {
+                                            clearTimeout(resizeTimer);
+                                        }
+                                        resizeTimer = setTimeout(() => {
+                                            $("#pe-bg").css({
+                                                width: document.documentElement.clientWidth + "px",
+                                                height:
+                                                    document.documentElement.clientHeight + "px",
+                                            });
+                                        }, 500);
+                                    });
+                                    $("#pe-close").click(function () {
+                                        $("#pe-bg").remove();
+                                    });
+
+                                    $("#pe-fg")
+                                        .find('input[type="checkbox"]')
+                                        .each(function () {
+                                            const $checkbox = $(this);
+                                            const name = $checkbox.attr("name");
+                                            GM.getValue(name, true).then((value) => {
+                                                $checkbox.prop("checked", value);
+                                            });
+                                        });
+                                    $("#pe-fg")
+                                        .find('input[type="text"]')
+                                        .each(function () {
+                                            const $input = $(this);
+                                            const name = $input.attr("name");
+                                            GM.getValue(name).then((value) => {
+                                                $input.val(value);
+                                            });
+                                        });
+
+                                    $("#pe-fg")
+                                        .find("#pe-save-btn")
+                                        .on("click", () => {
+                                            $("#pe-fg")
+                                                .find('input[type="checkbox"]')
+                                                .each(function () {
+                                                    const $checkbox = $(this);
+                                                    const name = $checkbox.attr("name");
+                                                    const checked = $checkbox.prop("checked");
+                                                    GM.setValue(name, checked);
+                                                });
+                                            $("#pe-fg")
+                                                .find('input[type="text"]')
+                                                .each(function () {
+                                                    const $input = $(this);
+                                                    const name = $input.attr("name");
+                                                    GM.setValue(name, $input.val());
+                                                });
+                                            location.reload();
+                                        });
+                                    $("#pe-fg")
+                                        .find("#pe-reset-btn")
+                                        .on("click", () => {
+                                            if (confirm(i18n("setting_reset_confirm"))) {
+                                                GM.listValues().then((keys) => {
+                                                    keys.forEach((key) => {
+                                                        GM.deleteValue(key);
+                                                    });
+                                                    location.reload();
+                                                });
+                                            }
+                                        });
+                                })
+                            );
+
+                        observer.disconnect();
+                        break;
+                    }
+                });
+            },
+            () => true,
+        ],
         // 1. 広告・不要要素削除
         [
             "ad_disable",
@@ -662,19 +726,34 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 "700000",
                                 "800000",
                             ];
-                            const $input = $form.find(
-                                'input[type="text"]:first'
-                            );
+                            const $input = $form.find('input[type="text"]:first');
 
                             $form.parent().after(
-                                $(`<button title="${i18n(
+                                $(`<button type="button" title="${i18n(
                                     "search_help_title"
                                 )}" class="iahZRV ekdKos">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="fill: currentColor; width: 20px;"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24V250.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1H222.6c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
-</button>`).on("click", () => {
-                                    $("#pe-bg").remove();
-                                    $("body").append(
-                                        $(`<div id="pe-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="fill: currentColor; width: 20px;"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24V250.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1H222.6c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></button>`).on(
+                                    "click",
+                                    () => {
+                                        let UICss;
+                                        if ($(".charcoal-token").attr("data-theme") == "default") {
+                                            UICss = `        body {overflow: hidden;}
+        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;-moz-user-select: none;user-select: none;}
+        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;overflow-y: scroll;}
+        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #111111;}
+        #pe-fg h1 {font-size: 25px;font-weight: bold;}
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}`;
+                                        } else {
+                                            UICss = `        body {overflow: hidden;}
+        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;-moz-user-select: none;user-select: none;}
+        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;overflow-y: scroll;}
+        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
+        #pe-fg h1 {font-size: 25px;font-weight: bold;}
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}`;
+                                        }
+                                        $("#pe-bg").remove();
+                                        $("body").append(
+                                            $(`<div id="pe-bg">
     <div id="pe-fg">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="pe-close"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
             <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
@@ -683,42 +762,34 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
         <div>${i18n("search_help_body")}</div>
     </div>
     <style>
-        #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
-        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;overflow-y: scroll;}
-        #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
-        #pe-fg h1 {font-size: 25px;font-weight: bold;}
-        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        ${UICss}
     </style>
 </div>`)
-                                    );
-                                    $("#pe-bg").css({
-                                        width:
-                                            document.documentElement
-                                                .clientWidth + "px",
-                                        height:
-                                            document.documentElement
-                                                .clientHeight + "px",
-                                    });
-                                    let resizeTimer = null;
-                                    $(window).on("resize", () => {
-                                        if (resizeTimer != null) {
-                                            clearTimeout(resizeTimer);
-                                        }
-                                        resizeTimer = setTimeout(() => {
-                                            $("#pe-bg").css({
-                                                width:
-                                                    document.documentElement
-                                                        .clientWidth + "px",
-                                                height:
-                                                    document.documentElement
-                                                        .clientHeight + "px",
-                                            });
-                                        }, 500);
-                                    });
-                                    $("#pe-close").click(function () {
-                                        $("#pe-bg").remove();
-                                    });
-                                })
+                                        );
+                                        $("#pe-bg").css({
+                                            width: document.documentElement.clientWidth + "px",
+                                            height: document.documentElement.clientHeight + "px",
+                                        });
+                                        let resizeTimer = null;
+                                        $(window).on("resize", () => {
+                                            if (resizeTimer != null) {
+                                                clearTimeout(resizeTimer);
+                                            }
+                                            resizeTimer = setTimeout(() => {
+                                                $("#pe-bg").css({
+                                                    width:
+                                                        document.documentElement.clientWidth + "px",
+                                                    height:
+                                                        document.documentElement.clientHeight +
+                                                        "px",
+                                                });
+                                            }, 500);
+                                        });
+                                        $("#pe-close").click(function () {
+                                            $("#pe-bg").remove();
+                                        });
+                                    }
+                                )
                             );
 
                             $input.on("focus", () => {
@@ -726,43 +797,28 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                     // users入り複数指定を置き換え
                                     let match = $input
                                         .val()
-                                        .match(
-                                            /(.+?)\s\((\d+)users入り .+? (\d+)users入り\)/
-                                        );
+                                        .match(/(.+?)\s\((\d+)users入り .+? (\d+)users入り\)/);
                                     if (match) {
-                                        $input.val(
-                                            `${match[1]} fav:${match[2]}-${match[3]}`
-                                        );
+                                        $input.val(`${match[1]} fav:${match[2]}-${match[3]}`);
                                         return;
                                     }
 
                                     // users入り単独指定を置き換え
-                                    match = $input
-                                        .val()
-                                        .match(/(.+?)\s(\d+)users入り/);
+                                    match = $input.val().match(/(.+?)\s(\d+)users入り/);
                                     if (match) {
-                                        $input.val(
-                                            `${match[1]} fav:${match[2]}`
-                                        );
+                                        $input.val(`${match[1]} fav:${match[2]}`);
                                         return;
                                     }
 
                                     // ユーザー検索ページで置き換え
-                                    if (
-                                        /.+\/search_user\.php.*/.test(
-                                            location.href
-                                        )
-                                    ) {
+                                    if (/.+\/search_user\.php.*/.test(location.href)) {
                                         if (
                                             !/uname:.+/.test(
-                                                $input.val() &&
-                                                    $input.val() != "uname:"
+                                                $input.val() && $input.val() != "uname:"
                                             )
                                         ) {
                                             // 置き換えされていない場合
-                                            $input.val(
-                                                `uname(p):${$input.val()}`
-                                            );
+                                            $input.val(`uname(p):${$input.val()}`);
                                         }
                                     }
                                 }, 1000);
@@ -772,24 +828,17 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 e.preventDefault();
                                 e.stopImmediatePropagation();
 
-                                let match = $input
-                                    .val()
-                                    .match(/(.+?)\sfav:(\d+)$/);
+                                let match = $input.val().match(/(.+?)\sfav:(\d+)$/);
                                 if (match) {
                                     const index = numberList.indexOf(match[2]);
                                     if (index != -1) {
-                                        if (
-                                            /.{0,}tags\/.*?\/artworks.{0,}/g.test(
-                                                location.href
-                                            )
-                                        ) {
-                                            location.href =
-                                                location.href.replace(
-                                                    /tags\/(.*?)\/artworks/g,
-                                                    `tags/${encodeURIComponent(
-                                                        `${match[1]} ${numberList[index]}users入り`
-                                                    )}/artworks`
-                                                );
+                                        if (/.{0,}tags\/.*?\/artworks.{0,}/g.test(location.href)) {
+                                            location.href = location.href.replace(
+                                                /tags\/(.*?)\/artworks/g,
+                                                `tags/${encodeURIComponent(
+                                                    `${match[1]} ${numberList[index]}users入り`
+                                                )}/artworks`
+                                            );
                                         } else {
                                             location.href = `https://www.pixiv.net/tags/${encodeURIComponent(
                                                 `${match[1]} ${numberList[index]}users入り`
@@ -799,51 +848,32 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                     }
                                 }
 
-                                match = $input
-                                    .val()
-                                    .match(/(.+?)\sfav:(\d+)-(\d+)/);
+                                match = $input.val().match(/(.+?)\sfav:(\d+)-(\d+)/);
                                 if (match) {
-                                    const fromIndex = numberList.indexOf(
-                                        match[2]
-                                    );
-                                    const toIndex = numberList.indexOf(
-                                        match[3]
-                                    );
+                                    const fromIndex = numberList.indexOf(match[2]);
+                                    const toIndex = numberList.indexOf(match[3]);
                                     if (fromIndex != -1 && toIndex != -1) {
                                         let favorites;
                                         if (fromIndex < toIndex) {
                                             favorites = `(${numberList[fromIndex]}users入り`;
-                                            for (
-                                                let i = fromIndex + 1;
-                                                i < toIndex;
-                                                i++
-                                            ) {
+                                            for (let i = fromIndex + 1; i < toIndex; i++) {
                                                 favorites += ` OR ${numberList[i]}users入り`;
                                             }
                                             favorites += ` OR ${numberList[toIndex]}users入り)`;
                                         } else {
                                             favorites = `(${numberList[toIndex]}users入り`;
-                                            for (
-                                                let i = toIndex + 1;
-                                                i < fromIndex;
-                                                i++
-                                            ) {
+                                            for (let i = toIndex + 1; i < fromIndex; i++) {
                                                 favorites += ` OR ${numberList[i]}users入り`;
                                             }
                                             favorites += ` OR ${numberList[fromIndex]}users入り)`;
                                         }
-                                        if (
-                                            /.{0,}tags\/.*?\/artworks.{0,}/g.test(
-                                                location.href
-                                            )
-                                        ) {
-                                            location.href =
-                                                location.href.replace(
-                                                    /tags\/(.*?)\/artworks/g,
-                                                    `tags/${encodeURIComponent(
-                                                        `${match[1]} ${favorites}`
-                                                    )}/artworks`
-                                                );
+                                        if (/.{0,}tags\/.*?\/artworks.{0,}/g.test(location.href)) {
+                                            location.href = location.href.replace(
+                                                /tags\/(.*?)\/artworks/g,
+                                                `tags/${encodeURIComponent(
+                                                    `${match[1]} ${favorites}`
+                                                )}/artworks`
+                                            );
                                         } else {
                                             location.href = `https://www.pixiv.net/tags/${encodeURIComponent(
                                                 `${match[1]} ${favorites}`
@@ -876,16 +906,10 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
 
                                 if (!!$input.val()) {
                                     // 通常検索
-                                    if (
-                                        /.{0,}tags\/.*?\/artworks.{0,}/g.test(
-                                            location.href
-                                        )
-                                    ) {
+                                    if (/.{0,}tags\/.*?\/artworks.{0,}/g.test(location.href)) {
                                         location.href = location.href.replace(
                                             /tags\/(.*?)\/artworks/g,
-                                            `tags/${encodeURIComponent(
-                                                $input.val()
-                                            )}/artworks`
+                                            `tags/${encodeURIComponent($input.val())}/artworks`
                                         );
                                     } else {
                                         location.href = `https://www.pixiv.net/tags/${encodeURIComponent(
@@ -920,28 +944,21 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         },
                         option
                     );
-                    const $downloadButtonContainer =
-                        options.$shareButtonContainer.clone();
+                    const $downloadButtonContainer = options.$shareButtonContainer.clone();
                     $downloadButtonContainer
                         .addClass("pe-download-btn")
                         .attr("id", options.id)
-                        .removeClass(
-                            options.$shareButtonContainer.attr("class")
-                        )
+                        .removeClass(options.$shareButtonContainer.attr("class"))
                         .css("margin-right", "10px")
                         .css("position", "relative")
                         .css("border", "1px solid")
                         .css("padding", "1px 10px")
-                        .append(
-                            `<p style="display: inline">${options.text}</p>`
-                        );
+                        .append(`<p style="display: inline">${options.text}</p>`);
                     $downloadButtonContainer
                         .find("button")
                         .css("transform", "rotate(180deg)")
                         .on("click", options.clickFun);
-                    options.$shareButtonContainer.after(
-                        $downloadButtonContainer
-                    );
+                    options.$shareButtonContainer.after($downloadButtonContainer);
                     return $downloadButtonContainer;
                 };
                 // 单图显示图片尺寸 https://www.pixiv.net/artworks/109953681
@@ -1025,10 +1042,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                 const isSingleMode = () =>
                     (illust().illustType === 0 || illust().illustType === 1) &&
                     illust().pageCount === 1;
-                const selectorShareBtn = await GM.getValue(
-                    GMkeys.selectorShareBtn,
-                    ".bTImJG"
-                ); // section 下的 div
+                const selectorShareBtn = await GM.getValue(GMkeys.selectorShareBtn, ".bTImJG"); // section 下的 div
 
                 // 热修复下载按钮的className
                 const a = () =>
@@ -1036,11 +1050,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         for (let i = 0, len = mutations.length; i < len; i++) {
                             const mutation = mutations[i];
                             const $target = $(mutation.target);
-                            if (
-                                $target.prop("tagName").toLowerCase() !==
-                                "section"
-                            )
-                                continue;
+                            if ($target.prop("tagName").toLowerCase() !== "section") continue;
                             const $section = $target.find("section");
                             if ($section.length <= 0) continue;
                             const className = $section
@@ -1049,10 +1059,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 .eq(1)
                                 .attr("class")
                                 .split(" ")[1];
-                            GM.setValue(
-                                GMkeys.selectorShareBtn,
-                                `.${className}`
-                            );
+                            GM.setValue(GMkeys.selectorShareBtn, `.${className}`);
                             observer.disconnect();
                             return;
                         }
@@ -1061,28 +1068,20 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                 const b = () =>
                     observerFactory({
                         callback(mutations, observer) {
-                            for (
-                                let i = 0, len = mutations.length;
-                                i < len;
-                                i++
-                            ) {
+                            for (let i = 0, len = mutations.length; i < len; i++) {
                                 const mutation = mutations[i];
                                 const $target = $(mutation.target);
                                 const replaceImg = ($target, attr, value) => {
                                     const oldValue = $target.attr(attr);
                                     if (
                                         new RegExp(
-                                            `https?://i(-f|-cf)?\.pximg\.net.*\/${
-                                                illust().id
-                                            }_.*`
+                                            `https?://i(-f|-cf)?\.pximg\.net.*\/${illust().id}_.*`
                                         ).test(oldValue) &&
                                         !new RegExp(
                                             `https?://i(-f|-cf)?\.pximg\.net/img-original.*`
                                         ).test(oldValue)
                                     ) {
-                                        $target
-                                            .attr(attr, value)
-                                            .css("filter", "none");
+                                        $target.attr(attr, value).css("filter", "none");
                                         $target.fitWindow();
                                     }
                                 };
@@ -1092,11 +1091,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 $link.each(function () {
                                     const $this = $(this);
                                     const href = $this.parent("a").attr("href");
-                                    if (
-                                        !!href &&
-                                        (href.endsWith("jpg") ||
-                                            href.endsWith("png"))
-                                    ) {
+                                    if (!!href && (href.endsWith("jpg") || href.endsWith("png"))) {
                                         if (config.load_origin) {
                                             replaceImg($this, "src", href);
                                         }
@@ -1150,9 +1145,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 clickFun() {
                                     // 从 pixiv 官方 api 获取 gif 的数据
                                     $.ajax({
-                                        url: `/ajax/illust/${
-                                            illust().illustId
-                                        }/ugoira_meta`,
+                                        url: `/ajax/illust/${illust().illustId}/ugoira_meta`,
                                         dataType: "json",
                                         success: ({ body }) => {
                                             // 1. 初始化 gif 下载按钮 点击事件
@@ -1174,17 +1167,15 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                 frameIdx++
                                             ) {
                                                 const frame = frames[frameIdx];
-                                                const url =
-                                                    illust().urls.original.replace(
-                                                        "ugoira0.",
-                                                        `ugoira${frameIdx}.`
-                                                    );
+                                                const url = illust().urls.original.replace(
+                                                    "ugoira0.",
+                                                    `ugoira${frameIdx}.`
+                                                );
                                                 GM.xmlHttpRequest({
                                                     method: "GET",
                                                     url,
                                                     headers: {
-                                                        referer:
-                                                            "https://www.pixiv.net/",
+                                                        referer: "https://www.pixiv.net/",
                                                     },
                                                     overrideMimeType:
                                                         "text/plain; charset=x-user-defined",
@@ -1192,63 +1183,38 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                         // 2. 转为blob类型
                                                         const r = responseText;
 
-                                                        const data =
-                                                            new Uint8Array(
-                                                                r.length
-                                                            );
+                                                        const data = new Uint8Array(r.length);
                                                         let i = 0;
                                                         while (i < r.length) {
-                                                            data[i] =
-                                                                r.charCodeAt(i);
+                                                            data[i] = r.charCodeAt(i);
                                                             i++;
                                                         }
-                                                        const suffix = url
-                                                            .split(".")
-                                                            .splice(-1);
-                                                        const blob = new Blob(
-                                                            [data],
-                                                            {
-                                                                type: mimeType(
-                                                                    suffix
-                                                                ),
-                                                            }
-                                                        );
+                                                        const suffix = url.split(".").splice(-1);
+                                                        const blob = new Blob([data], {
+                                                            type: mimeType(suffix),
+                                                        });
 
                                                         // 3. 压入gifFrames数组中, 手动同步sync
-                                                        const img =
-                                                            document.createElement(
-                                                                "img"
-                                                            );
-                                                        img.src =
-                                                            URL.createObjectURL(
-                                                                blob
-                                                            );
-                                                        img.width =
-                                                            illust().width;
-                                                        img.height =
-                                                            illust().height;
+                                                        const img = document.createElement("img");
+                                                        img.src = URL.createObjectURL(blob);
+                                                        img.width = illust().width;
+                                                        img.height = illust().height;
                                                         img.onload = () => {
-                                                            gifFrames[
-                                                                frameIdx
-                                                            ] = {
+                                                            gifFrames[frameIdx] = {
                                                                 frame: img,
                                                                 option: {
                                                                     delay: frame.delay,
                                                                 },
                                                             };
                                                             if (
-                                                                Object.keys(
-                                                                    gifFrames
-                                                                ).length >=
+                                                                Object.keys(gifFrames).length >=
                                                                 framesLen
                                                             ) {
-                                                                $.each(
-                                                                    gifFrames,
-                                                                    (i, f) =>
-                                                                        gifFactory.addFrame(
-                                                                            f.frame,
-                                                                            f.option
-                                                                        )
+                                                                $.each(gifFrames, (i, f) =>
+                                                                    gifFactory.addFrame(
+                                                                        f.frame,
+                                                                        f.option
+                                                                    )
                                                                 );
                                                                 gifFactory.render();
                                                             }
@@ -1259,44 +1225,27 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                             gifFactory.on("progress", (pct) => {
                                                 $gifBtn
                                                     .find("p")
-                                                    .text(
-                                                        `gif ${parseInt(
-                                                            pct * 100
-                                                        )}%`
-                                                    );
+                                                    .text(`gif ${parseInt(pct * 100)}%`);
                                             });
-                                            gifFactory.on(
-                                                "finished",
-                                                (blob) => {
-                                                    gifUrl =
-                                                        URL.createObjectURL(
-                                                            blob
-                                                        );
-                                                    GM.getValue(
-                                                        GMkeys.downloadName,
-                                                        `{pid}`
-                                                    ).then((name) => {
+                                            gifFactory.on("finished", (blob) => {
+                                                gifUrl = URL.createObjectURL(blob);
+                                                GM.getValue(GMkeys.downloadName, `{pid}`).then(
+                                                    (name) => {
                                                         const $a = $(
                                                             `<a href="${gifUrl}" download="${getDownloadName(
                                                                 name
                                                             )}"></a>`
                                                         );
-                                                        $gifBtn
-                                                            .find("button")
-                                                            .wrap($a);
-                                                    });
-                                                }
-                                            );
+                                                        $gifBtn.find("button").wrap($a);
+                                                    }
+                                                );
+                                            });
                                             $gifBtn
                                                 .find("button")
                                                 .off("click")
                                                 .on("click", () => {
                                                     if (!gifUrl) {
-                                                        alert(
-                                                            i18n(
-                                                                "gif_not_loaded"
-                                                            )
-                                                        );
+                                                        alert(i18n("gif_not_loaded"));
                                                         return;
                                                     }
                                                     // Adblock 禁止直接打开 blob url, https://github.com/jnordberg/gif.js/issues/71#issuecomment-367260284
@@ -1309,33 +1258,24 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
 
                             // 4. 控制是否预下载, 避免多个页面导致爆内存, 直接下载 zip
                             $.ajax({
-                                url: `/ajax/illust/${
-                                    illust().illustId
-                                }/ugoira_meta`,
+                                url: `/ajax/illust/${illust().illustId}/ugoira_meta`,
                                 dataType: "json",
                                 success: ({ body }) => {
-                                    GM.getValue(
-                                        GMkeys.downloadName,
-                                        `{pid}`
-                                    ).then((name) => {
+                                    GM.getValue(GMkeys.downloadName, `{pid}`).then((name) => {
                                         const $a = $(
                                             `<a href="${
                                                 body.originalSrc
-                                            }" download="${getDownloadName(
-                                                name
-                                            )}"></a>`
+                                            }" download="${getDownloadName(name)}"></a>`
                                         );
                                         $zipBtn.find("button").wrap($a);
                                     });
                                 },
                             });
-                            GM.getValue(GMkeys.switchImgPreload, true).then(
-                                (open) => {
-                                    if (open) {
-                                        $gifBtn.find("button").click();
-                                    }
+                            GM.getValue(GMkeys.switchImgPreload, true).then((open) => {
+                                if (open) {
+                                    $gifBtn.find("button").click();
                                 }
-                            );
+                            });
 
                             // 5. 取消监听
                             GM.getValue(GMkeys.MO, true).then((v) => {
@@ -1362,16 +1302,11 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             }
 
                             // 2. 查看全部图片
-                            GM.getValue(GMkeys.switchImgMulti, true).then(
-                                (open) => {
-                                    if (open) {
-                                        $shareBtn
-                                            .parent("section")
-                                            .next("button")
-                                            .click();
-                                    }
+                            GM.getValue(GMkeys.switchImgMulti, true).then((open) => {
+                                if (open) {
+                                    $shareBtn.parent("section").next("button").click();
                                 }
-                            );
+                            });
 
                             // 3. 初始化 图片数量, 图片url
                             const zip = new JSZip();
@@ -1380,9 +1315,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             const url = illust().urls.original;
                             const imgUrls = Array(parseInt(num))
                                 .fill()
-                                .map((value, index) =>
-                                    url.replace(/_p\d\./, `_p${index}.`)
-                                );
+                                .map((value, index) => url.replace(/_p\d\./, `_p${index}.`));
 
                             // 4. 初始化 下载按钮, 复制分享按钮并旋转180度
                             const $zipBtn = initDownloadBtn({
@@ -1398,8 +1331,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                 method: "GET",
                                                 url,
                                                 headers: {
-                                                    referer:
-                                                        "https://www.pixiv.net/",
+                                                    referer: "https://www.pixiv.net/",
                                                 },
                                                 overrideMimeType:
                                                     "text/plain; charset=x-user-defined",
@@ -1407,40 +1339,29 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                     // 4.1. 转为blob类型
                                                     const r = responseText;
 
-                                                    const data = new Uint8Array(
-                                                        r.length
-                                                    );
+                                                    const data = new Uint8Array(r.length);
                                                     let i = 0;
                                                     while (i < r.length) {
-                                                        data[i] =
-                                                            r.charCodeAt(i);
+                                                        data[i] = r.charCodeAt(i);
                                                         i++;
                                                     }
-                                                    const suffix = url
-                                                        .split(".")
-                                                        .splice(-1);
-                                                    const blob = new Blob(
-                                                        [data],
-                                                        {
-                                                            type: mimeType(
-                                                                suffix
-                                                            ),
-                                                        }
-                                                    );
+                                                    const suffix = url.split(".").splice(-1);
+                                                    const blob = new Blob([data], {
+                                                        type: mimeType(suffix),
+                                                    });
 
                                                     // 4.2. 压缩图片
-                                                    GM.getValue(
-                                                        GMkeys.downloadName,
-                                                        `{pid}`
-                                                    ).then((name) => {
-                                                        zip.file(
-                                                            `${getDownloadName(
-                                                                name
-                                                            )}_${index}.${suffix}`,
-                                                            blob,
-                                                            { binary: true }
-                                                        );
-                                                    });
+                                                    GM.getValue(GMkeys.downloadName, `{pid}`).then(
+                                                        (name) => {
+                                                            zip.file(
+                                                                `${getDownloadName(
+                                                                    name
+                                                                )}_${index}.${suffix}`,
+                                                                blob,
+                                                                { binary: true }
+                                                            );
+                                                        }
+                                                    );
 
                                                     // 4.3. 手动sync, 避免下载不完全的情况
                                                     downloaded++;
@@ -1463,31 +1384,23 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                         return;
                                     }
                                     // 3.3. 使用jszip.js和FileSaver.js压缩并下载图片
-                                    GM.getValue(
-                                        GMkeys.downloadName,
-                                        `{pid}`
-                                    ).then((name) => {
+                                    GM.getValue(GMkeys.downloadName, `{pid}`).then((name) => {
                                         zip.generateAsync({
                                             type: "blob",
                                             base64: true,
                                         }).then((content) =>
-                                            saveAs(
-                                                content,
-                                                getDownloadName(name)
-                                            )
+                                            saveAs(content, getDownloadName(name))
                                         );
                                     });
                                 },
                             });
 
                             // 4. 控制是否预下载, 避免多个页面导致爆内存
-                            GM.getValue(GMkeys.switchImgPreload, true).then(
-                                (open) => {
-                                    if (open) {
-                                        $zipBtn.find("button").click();
-                                    }
+                            GM.getValue(GMkeys.switchImgPreload, true).then((open) => {
+                                if (open) {
+                                    $zipBtn.find("button").click();
                                 }
-                            );
+                            });
 
                             // 5. 取消监听
                             GM.getValue(GMkeys.MO, true).then((v) => {
@@ -1521,9 +1434,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             const $target = $(mutation.target); // 多个反混淆externalLinksContainer
 
                             const externalLinksContainer = "_2AOtfl9";
-                            const $row = $(
-                                `ul.${externalLinksContainer}`
-                            ).parent();
+                            const $row = $(`ul.${externalLinksContainer}`).parent();
                             if (
                                 mutation.type !== "childList" ||
                                 $row.length <= 0 ||
@@ -1546,11 +1457,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 `<li id="uid"><div style="font-size: 20px;font-weight: 700;color: #333;margin-right: 8px;line-height: 1">UID:${uid}</div></li>`
                             ).on("click", function () {
                                 const $this = $(this);
-                                $this.html(
-                                    `<span>UID${i18n(
-                                        "copy_to_clipboard"
-                                    )}</span>`
-                                );
+                                $this.html(`<span>UID${i18n("copy_to_clipboard")}</span>`);
                                 GM.setClipboard(uid);
                                 setTimeout(() => {
                                     $this.html(`<span>UID${uid}</span>`);
@@ -1572,11 +1479,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                     )}</a>`
                                 );
                             } else {
-                                $bg.append(
-                                    `<span>${i18n(
-                                        "background_not_found"
-                                    )}</span>`
-                                );
+                                $bg.append(`<span>${i18n("background_not_found")}</span>`);
                             }
                             $ul.append($bgli);
 
@@ -1592,24 +1495,13 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         for (let i = 0, len = mutations.length; i < len; i++) {
                             const mutation = mutations[i];
                             // 1. 判断是否改变节点, 或者是否有[section]节点
-                            const $aside = $(mutation.target)
-                                .parent()
-                                .find("main")
-                                .next("aside");
-                            if (
-                                mutation.type !== "childList" ||
-                                $aside.length <= 0
-                            ) {
+                            const $aside = $(mutation.target).parent().find("main").next("aside");
+                            if (mutation.type !== "childList" || $aside.length <= 0) {
                                 continue;
                             }
 
-                            const $row = $aside
-                                .find("section:first")
-                                .find("h2");
-                            if (
-                                $row.length <= 0 ||
-                                $aside.find("#pe-background").length > 0
-                            ) {
+                            const $row = $aside.find("section:first").find("h2");
+                            if ($row.length <= 0 || $aside.find("#pe-background").length > 0) {
                                 continue;
                             }
 
@@ -1617,24 +1509,15 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             const uid = getUid();
                             const background = preloadData.user[uid].background;
                             const url = (background && background.url) || "";
-                            const $bgDiv = $row
-                                .clone()
-                                .attr("id", "pe-background");
+                            const $bgDiv = $row.clone().attr("id", "pe-background");
                             $bgDiv.children("a").remove();
                             $bgDiv.children("div").children("div").remove();
                             $bgDiv.prepend(`<img src="${url}" width="10%"/>`);
                             $bgDiv
                                 .find("div a")
-                                .attr(
-                                    "href",
-                                    !!url ? url : "javascript:void(0)"
-                                )
+                                .attr("href", !!url ? url : "javascript:void(0)")
                                 .attr("target", "_blank")
-                                .text(
-                                    !!url
-                                        ? i18n("background")
-                                        : i18n("background_not_found")
-                                );
+                                .text(!!url ? i18n("background") : i18n("background_not_found"));
                             $row.after($bgDiv);
 
                             // 3. 显示画师id, 点击自动复制到剪贴板
@@ -1647,9 +1530,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 .text(`UID: ${uid}`);
                             $uid.on("click", function () {
                                 const $this = $(this);
-                                $this
-                                    .find("a")
-                                    .text(`UID${i18n("copy_to_clipboard")}`);
+                                $this.find("a").text(`UID${i18n("copy_to_clipboard")}`);
                                 GM.setClipboard(uid);
                                 setTimeout(() => {
                                     $this.find("a").text(`UID: ${uid}`);
@@ -1684,9 +1565,10 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                     return;
                                 }
 
-                                const $userImg = $(
-                                    '<img class="pe-user-img" src=""/>'
-                                ).attr("src", imgUrl);
+                                const $userImg = $('<img class="pe-user-img" src=""/>').attr(
+                                    "src",
+                                    imgUrl
+                                );
                                 $userImg
                                     .css("width", $this.css("width"))
                                     .css("height", $this.css("height"));
@@ -1706,20 +1588,18 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             });
 
                             // 3. 将评论头像由 background 转为 <img>
-                            $target
-                                .find("a[data-user_id][data-src]")
-                                .each(function () {
-                                    const $this = $(this);
-                                    const $div = $this.find("div");
-                                    const $img = $("<img/>");
-                                    $img.attr("src", $this.attr("data-src"));
-                                    if (!!$div.length) {
-                                        $img.attr("class", $div.attr("class"))
-                                            .css("width", $div.css("width"))
-                                            .css("height", $div.css("height"));
-                                        $this.html($img);
-                                    }
-                                });
+                            $target.find("a[data-user_id][data-src]").each(function () {
+                                const $this = $(this);
+                                const $div = $this.find("div");
+                                const $img = $("<img/>");
+                                $img.attr("src", $this.attr("data-src"));
+                                if (!!$div.length) {
+                                    $img.attr("class", $div.attr("class"))
+                                        .css("width", $div.css("width"))
+                                        .css("height", $div.css("height"));
+                                    $this.html($img);
+                                }
+                            });
                         }
                     });
                 return [
@@ -1749,9 +1629,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         }
 
                         // 2. 模拟点击加载按钮
-                        const $moreCommentBtns = $(
-                            "div > div:eq(2) > div div[role='button']"
-                        );
+                        const $moreCommentBtns = $("div > div:eq(2) > div div[role='button']");
                         let $moreCommentBtn = $moreCommentBtns[0];
 
                         if ($moreCommentBtn) {
@@ -1765,9 +1643,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                             }
                         }
 
-                        const $moreReplayBtn = $(mutation.target).find(
-                            moreReplaySelector
-                        );
+                        const $moreReplayBtn = $(mutation.target).find(moreReplaySelector);
                         $moreReplayBtn.click();
                     }
                 });
@@ -1784,9 +1660,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                     for (let i = 0, len = mutations.length; i < len; i++) {
                         const mutation = mutations[i];
                         // 1. 判断是否改变节点
-                        const $title = $(mutation.target).find(
-                            illustTitleSelector
-                        );
+                        const $title = $(mutation.target).find(illustTitleSelector);
                         if (mutation.type !== "childList" || !$title.length) {
                             continue;
                         }
@@ -1807,32 +1681,21 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                 url: `/ajax/illust/${illustId}`,
                                 dataType: "json",
                                 success: ({ body }) => {
-                                    const illustType = parseInt(
-                                        body.illustType
-                                    );
-                                    const isMultiPic =
-                                        parseInt(body.pageCount) > 1;
+                                    const illustType = parseInt(body.illustType);
+                                    const isMultiPic = parseInt(body.pageCount) > 1;
                                     switch (illustType) {
                                         case 0:
                                         case 1:
                                             $a.after(
                                                 `<p>${
                                                     isMultiPic
-                                                        ? i18n(
-                                                              "feed_illust_type_multiple"
-                                                          )
-                                                        : i18n(
-                                                              "feed_illust_type_single"
-                                                          )
+                                                        ? i18n("feed_illust_type_multiple")
+                                                        : i18n("feed_illust_type_single")
                                                 }</p>`
                                             );
                                             break;
                                         case 2:
-                                            $a.after(
-                                                `<p>${i18n(
-                                                    "feed_illust_type_gif"
-                                                )}</p>`
-                                            );
+                                            $a.after(`<p>${i18n("feed_illust_type_gif")}</p>`);
                                             break;
                                     }
                                 },
@@ -1861,9 +1724,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         const $jump = $(mutation.target).find(jumpSelector);
                         $jump.each(function () {
                             const $this = $(this);
-                            const url = $this
-                                .attr("href")
-                                .match(/jump\.php\?(url=)?(.*)$/)[2];
+                            const url = $this.attr("href").match(/jump\.php\?(url=)?(.*)$/)[2];
                             $this.attr("href", decodeURIComponent(url));
                         });
                     }
@@ -1885,9 +1746,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         $(mutation.target)
                             .find("span._history-item.trial")
                             .each(function () {
-                                let url = /http.*?\.jpg/.exec(
-                                    $(this).attr("style")
-                                )[0];
+                                let url = /http.*?\.jpg/.exec($(this).attr("style"))[0];
                                 let pid = /\/\d*?_/.exec(url)[0].slice(1, -1);
                                 $(this)
                                     .removeClass("trial")
@@ -1912,23 +1771,16 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                                 `<span class="_bookmark-icon-like-icon-font white"></span>`
                                             );
                                         }
-                                        const illustType = parseInt(
-                                            body.illustType
-                                        );
-                                        const isMultiPic =
-                                            parseInt(body.pageCount) > 1;
+                                        const illustType = parseInt(body.illustType);
+                                        const isMultiPic = parseInt(body.pageCount) > 1;
                                         switch (illustType) {
                                             case 0:
                                             case 1:
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${
                                                         isMultiPic
-                                                            ? i18n(
-                                                                  "feed_illust_type_multiple"
-                                                              )
-                                                            : i18n(
-                                                                  "feed_illust_type_single"
-                                                              )
+                                                            ? i18n("feed_illust_type_multiple")
+                                                            : i18n("feed_illust_type_single")
                                                     }</span>`
                                                 );
                                                 break;
@@ -1946,32 +1798,23 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                         $(mutation.target)
                             .find("a._history-item:not(.pe-history)")
                             .each(function () {
-                                let url = /http.*?\.jpg/.exec(
-                                    $(this).attr("style")
-                                )[0];
+                                let url = /http.*?\.jpg/.exec($(this).attr("style"))[0];
                                 let pid = /\/\d*?_/.exec(url)[0].slice(1, -1);
                                 const statusElm = $(this).find(".status");
                                 $.ajax({
                                     url: `/ajax/illust/${pid}`,
                                     dataType: "json",
                                     success: ({ body }) => {
-                                        const illustType = parseInt(
-                                            body.illustType
-                                        );
-                                        const isMultiPic =
-                                            parseInt(body.pageCount) > 1;
+                                        const illustType = parseInt(body.illustType);
+                                        const isMultiPic = parseInt(body.pageCount) > 1;
                                         switch (illustType) {
                                             case 0:
                                             case 1:
                                                 statusElm.append(
                                                     `<span style="vertical-align: middle;color: #3f3f3f;">${
                                                         isMultiPic
-                                                            ? i18n(
-                                                                  "feed_illust_type_multiple"
-                                                              )
-                                                            : i18n(
-                                                                  "feed_illust_type_single"
-                                                              )
+                                                            ? i18n("feed_illust_type_multiple")
+                                                            : i18n("feed_illust_type_single")
                                                     }</span>`
                                                 );
                                                 break;
