@@ -4,7 +4,7 @@
 // @name:zh-CN  Pixiv Extender
 // @name:zh-TW  Pixiv Extender
 // @namespace   https://github.com/Kakejoyu/PixivExtender
-// @version     1.0.1
+// @version     1.1.0
 // @icon        https://www.pixiv.net/favicon.ico
 // @description "Pixiv Extender" is a user script derived from "Pixiv Plus" that adds various features to Pixiv. Thanks to Ahaochan, the developer of "Pixiv Plus"!
 // @description:ja    「Pixiv Extender」は、Pixivに様々な機能を追加する「Pixiv Plus」から派生したユーザースクリプトです。「Pixiv Plus」の開発者であるAhaochanに感謝します！
@@ -221,7 +221,6 @@ jQuery(($) => {
             setting_general: "一般設定",
             setting_feedPage: "フィードページ設定",
             setting_artworkPage: "作品ページ設定",
-            setting_download: "ダウンロード設定",
             setting_help_btn_tooltip: "この項目のヘルプ",
             setting_save_btn: "保存",
             setting_reset_btn: "リセット",
@@ -267,7 +266,6 @@ jQuery(($) => {
             setting_general: "General Settings",
             setting_feedPage: "Feed Page Settings",
             setting_artworkPage: "Artwork Page Settings",
-            setting_download: "Download Settings",
             setting_help_btn_tooltip: "Help for this item",
             setting_save_btn: "Save",
             setting_reset_btn: "Reset",
@@ -313,7 +311,6 @@ jQuery(($) => {
             setting_general: "常规设置",
             setting_feedPage: "馈送页面设置",
             setting_artworkPage: "作品页面设置",
-            setting_download: "下载设置",
             setting_help_btn_tooltip: "此项目的帮助",
             setting_save_btn: "保存設定",
             setting_reset_btn: "重置設定",
@@ -360,7 +357,6 @@ jQuery(($) => {
             setting_general: "常規設定",
             setting_feedPage: "饋送頁面設定",
             setting_artworkPage: "作品頁面設定",
-            setting_download: "下載設定",
             setting_help_btn_tooltip: "此項目的幫助",
             setting_save_btn: "儲存設定",
             setting_reset_btn: "重置設定",
@@ -538,7 +534,6 @@ jQuery(($) => {
             <label class="pe-toggle-box"><input type="checkbox" name="comment_load" /><div><div></div></div>${i18n(
                 "comment_load"
             )}</label>
-            <h2>${i18n("setting_download")}</h2>
             <label class="pe-toggle-box"><input type="checkbox" name="${
                 GMkeys.switchImgPreload
             }" /><div><div></div></div>${i18n("setting_switchImgPreload")}</label>
@@ -735,14 +730,16 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
         #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;overflow-y: scroll;}
         #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #111111;}
         #pe-fg h1 {font-size: 25px;font-weight: bold;}
-        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}`;
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        #pe-fg code{display: inline-block;margin: 2px 0;padding: 2px;border: 1px solid #454545;background: #bdbdbd;border-radius: 5px;}`;
                                         } else {
                                             UICss = `        body {overflow: hidden;}
         #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;-moz-user-select: none;user-select: none;}
         #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;overflow-y: scroll;}
         #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
         #pe-fg h1 {font-size: 25px;font-weight: bold;}
-        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}`;
+        #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        #pe-fg code{display: inline-block;margin: 2px 0;padding: 2px;border: 1px solid #454545;background: #191919;border-radius: 5px;}`;
                                         }
                                         $("#pe-bg").remove();
                                         $("body").append(
