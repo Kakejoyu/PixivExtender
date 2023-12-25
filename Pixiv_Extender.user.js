@@ -188,6 +188,7 @@ jQuery(($) => {
             artist_info: "アーティスト情報を表示",
             comment_load: "コメントの読み込み",
             artwork_tag: "フィードでの作品種別表示",
+            title_tooltip: "完全なタイトルをツールチップで表示",
             redirect_cancel: "リダイレクトのバイパス",
             history_enhance: "閲覧履歴の強化",
             watchlist: "ウォッチリストに追加",
@@ -233,6 +234,7 @@ jQuery(($) => {
             artist_info: "Display artist UIDs and profile background images",
             comment_load: "Automatically load comments",
             artwork_tag: "Display artwork types",
+            title_tooltip: "Show full title with tooltip",
             redirect_cancel: "Avoid redirect links",
             history_enhance: "Enhanced History",
             watchlist: "Add to Watchlist",
@@ -278,6 +280,7 @@ jQuery(($) => {
             artist_info: "显示作者信息",
             comment_load: "加载评论",
             artwork_tag: "作品标记",
+            title_tooltip: "用工具提示显示完整标题",
             redirect_cancel: "取消重定向",
             history_enhance: "增强您的浏览历史记录",
             watchlist: "加入追更列表",
@@ -324,6 +327,7 @@ jQuery(($) => {
             artist_info: "顯示作者信息",
             comment_load: "加載評論",
             artwork_tag: "作品標記",
+            title_tooltip: "用工具提示顯示完整標題",
             redirect_cancel: "取消重定向",
             history_enhance: "增強您的瀏覽記錄",
             watchlist: "加入追蹤列表",
@@ -373,6 +377,7 @@ jQuery(($) => {
             ["artist_info", true],
             ["comment_load", true],
             ["artwork_tag", true],
+            ["title_tooltip", true],
             ["redirect_cancel", true],
             ["history_enhance", true],
             ["load_origin", true],
@@ -394,9 +399,10 @@ jQuery(($) => {
             artist_info: settings[2][1],
             comment_load: settings[3][1],
             artwork_tag: settings[4][1],
-            redirect_cancel: settings[5][1],
-            history_enhance: settings[6][1],
-            load_origin: settings[7][1],
+            title_tooltip: settings[5][1],
+            redirect_cancel: settings[6][1],
+            history_enhance: settings[7][1],
+            load_origin: settings[8][1],
         });
     };
     const config = initConfig();
@@ -510,6 +516,9 @@ jQuery(($) => {
             )}</label>
             <label class="pe-toggle-box"><input type="checkbox" name="artist_info" /><div><div></div></div>${i18n(
                 "artist_info"
+            )}</label>
+            <label class="pe-toggle-box"><input type="checkbox" name="title_tooltip" /><div><div></div></div>${i18n(
+                "title_tooltip"
             )}</label>
             <label class="pe-toggle-box"><input type="checkbox" name="redirect_cancel" /><div><div></div></div>${i18n(
                 "redirect_cancel"
@@ -727,7 +736,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                         if ($(".charcoal-token").attr("data-theme") == "default") {
                                             UICss = `        body {overflow: hidden;}
         #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;-moz-user-select: none;user-select: none;}
-        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;overflow-y: scroll;}
+        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;}
         #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #111111;}
         #pe-fg h1 {font-size: 25px;font-weight: bold;}
         #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
@@ -735,7 +744,7 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                                         } else {
                                             UICss = `        body {overflow: hidden;}
         #pe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;-moz-user-select: none;user-select: none;}
-        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;overflow-y: scroll;}
+        #pe-fg {width: 50%;height: 80%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;}
         #pe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
         #pe-fg h1 {font-size: 25px;font-weight: bold;}
         #pe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
@@ -1696,6 +1705,36 @@ a[href="/premium/lead/lp/?g=anchor&i=work_detail_remove_ads"] {
                 });
             },
             () => isMemberDynamicPage(),
+        ],
+        [
+            "title_tooltip",
+            null,
+            () => {
+                return observerFactory((mutations, observer) => {
+                    for (let i = 0, len = mutations.length; i < len; i++) {
+                        const mutation = mutations[i];
+
+                        if (mutation.type !== "childList") {
+                            continue;
+                        }
+
+                        const $titleElm1 = $(mutation.target).find("a.bOcolJ");
+                        $titleElm1.each(function () {
+                            const $this = $(this);
+                            const title = $this.text();
+                            $this.attr("title", title);
+                        });
+
+                        const $titleElm2 = $(mutation.target).find("a.hduKTf");
+                        $titleElm2.each(function () {
+                            const $this = $(this);
+                            const title = $this.text();
+                            $this.attr("title", title);
+                        });
+                    }
+                });
+            },
+            () => true,
         ],
         // 8. 对jump.php取消重定向
         [
