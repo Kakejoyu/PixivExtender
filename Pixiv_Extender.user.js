@@ -4,7 +4,7 @@
 // @name:zh-CN  Pixiv Extender
 // @name:zh-TW  Pixiv Extender
 // @namespace   https://github.com/Kakejoyu/PixivExtender
-// @version     1.1.0
+// @version     1.2.0
 // @icon        https://www.pixiv.net/favicon.ico
 // @description "Pixiv Extender" is a user script derived from "Pixiv Plus" that adds various features to Pixiv. Thanks to Ahaochan, the developer of "Pixiv Plus"!
 // @description:ja    「Pixiv Extender」は、Pixivに様々な機能を追加する「Pixiv Plus」から派生したユーザースクリプトです。「Pixiv Plus」の開発者であるAhaochanに感謝します！
